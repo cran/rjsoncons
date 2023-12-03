@@ -1,10 +1,10 @@
 Package: rjsoncons
 Title: 'C++' Header-Only 'jsoncons' Library for 'JSON' Queries
-Version: 1.0.0
+Version: 1.0.1
 Authors@R: c(
     person(
         "Martin", "Morgan", role = c("aut", "cre"),
-        email = "mtmorgan.bioc@gmail.com",
+        email = "mtmorgan.xyz@gmail.com",
         comment = c(ORCID = "0000-0002-5874-8148")
     ),
     person(
@@ -29,15 +29,15 @@ Suggests: tinytest, BiocStyle, knitr, rmarkdown
 License: BSL-1.0
 LinkingTo: cpp11
 NeedsCompilation: yes
-SystemRequirements: C++11
 Encoding: UTF-8
 BugReports: https://github.com/mtmorgan/rjsoncons/issues
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 VignetteBuilder: knitr
-Packaged: 2022-09-27 11:21:43 UTC; ma38727
+URL: https://mtmorgan.github.io/rjsoncons/
+Packaged: 2023-12-03 18:53:40 UTC; ma38727
 Author: Martin Morgan [aut, cre] (<https://orcid.org/0000-0002-5874-8148>),
   Marcel Ramos [aut] (<https://orcid.org/0000-0002-3242-0582>),
   Daniel Parker [aut, cph] (jsoncons C++ library maintainer)
-Maintainer: Martin Morgan <mtmorgan.bioc@gmail.com>
+Maintainer: Martin Morgan <mtmorgan.xyz@gmail.com>
 Repository: CRAN
-Date/Publication: 2022-09-29 08:20:05 UTC
+Date/Publication: 2023-12-03 23:40:02 UTC
