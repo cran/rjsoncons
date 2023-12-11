@@ -1,5 +1,14 @@
 # rjsoncons 1.1.0
 
+- (1.1.0) CRAN release
+- (1.0.1.9100) using jsonlite (e.g., 'toJSON()' for parsing R objects)
+  requires separate installation of jsonlite.
+- (1.0.1.9000) update jsoncons library to 0.172.1; addresses segfault
+  on 'fedora' CRAN builder
+
+# rjsoncons 1.0.1
+
+- (1.0.1) CRAN release
 - (1.0.0.9200) use pkgdown
 - (1.0.0.9100) parse JSON to R with `as = "R"` argument and `as_r()`
 

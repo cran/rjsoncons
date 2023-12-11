@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2023-12-03" />
+<meta name="date" content="2023-12-10" />
 
 <title>Using the ‘jsoncons’ Library in R</title>
 
@@ -703,7 +703,7 @@ function toggle_visibility(id1) {
 <h1 class="title toc-ignore">Using the ‘jsoncons’ Library in R</h1>
 <p class="author-name">Martin Morgan<span class="affil-mark">1</span> and Marcel Ramos<span class="affil-mark">2</span></p>
 <p class="author-affiliation"><span class="affil-mark">1</span>Roswell Park Comprehensive Cancer Center, Buffalo, NY, US<br><span class="affil-mark">2</span>CUNY School of Public Health at Hunter College, New York, NY, US</p>
-<h4 class="date">3 December 2023</h4>
+<h4 class="date">10 December 2023</h4>
 
 </div>
 
@@ -738,7 +738,7 @@ remotes::install_github(&quot;mtmorgan/rjsoncons&quot;)</code></pre>
 version of the C++ library in use</p>
 <pre class="r"><code>library(rjsoncons)
 rjsoncons::version()
-## [1] &quot;0.168.7&quot;</code></pre>
+## [1] &quot;0.172.1 (update bbaf3b73b)&quot;</code></pre>
 </div>
 <div id="use-cases" class="section level1" number="2">
 <h1><span class="header-section-number">2</span> Use cases</h1>
@@ -902,9 +902,9 @@ between R and the C++ ‘jsoncons’ library.</p>
 <h1><span class="header-section-number">5</span> Session information</h1>
 <p>This vignette was compiled using the following software versions</p>
 <pre class="r"><code>sessionInfo()
-## R Under development (unstable) (2023-10-30 r85438)
-## Platform: aarch64-apple-darwin21.6.0
-## Running under: macOS Sonoma 14.1.1
+## R Under development (unstable) (2023-12-04 r85659)
+## Platform: aarch64-apple-darwin23.1.0
+## Running under: macOS Sonoma 14.1.2
 ## 
 ## Matrix products: default
 ## BLAS:   /Users/ma38727/bin/R-devel/lib/libRblas.dylib 
@@ -920,16 +920,16 @@ between R and the C++ ‘jsoncons’ library.</p>
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-## [1] rjsoncons_1.0.1  BiocStyle_2.31.0
+## [1] rjsoncons_1.1.0  BiocStyle_2.31.0
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] digest_0.6.33       R6_2.5.1            bookdown_0.36      
-##  [4] fastmap_1.1.1       xfun_0.41           cachem_1.0.8       
-##  [7] knitr_1.45          htmltools_0.5.7     rmarkdown_2.25     
-## [10] cli_3.6.1           sass_0.4.7          jquerylib_0.1.4    
-## [13] compiler_4.4.0      tools_4.4.0         evaluate_0.23      
-## [16] bslib_0.5.1         yaml_2.3.7          BiocManager_1.30.22
-## [19] jsonlite_1.8.7      rlang_1.1.2</code></pre>
+##  [1] digest_0.6.33         R6_2.5.1              bookdown_0.37        
+##  [4] fastmap_1.1.1         xfun_0.41             cachem_1.0.8         
+##  [7] knitr_1.45            htmltools_0.5.7       rmarkdown_2.25       
+## [10] lifecycle_1.0.4       cli_3.6.1             sass_0.4.8           
+## [13] jquerylib_0.1.4       compiler_4.4.0        tools_4.4.0          
+## [16] evaluate_0.23         bslib_0.6.1           yaml_2.3.7           
+## [19] BiocManager_1.30.22.3 jsonlite_1.8.8        rlang_1.1.2</code></pre>
 </div>
 
 
