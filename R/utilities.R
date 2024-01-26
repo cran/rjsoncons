@@ -5,17 +5,19 @@
 }
 
 .is_scalar_character <-
-    function(x)
+    function(x, z.ok = FALSE)
 {
-    .is_scalar(x) && is.character(x) && nzchar(x)
+    .is_scalar(x) && is.character(x) && (z.ok || nzchar(x))
 }
 
-.as_json_string <-
-    function(x, ...)
+.is_scalar_numeric <-
+    function(x)
 {
-    if (.is_scalar_character(x) && !inherits(x, "AsIs")) {
-        x
-    } else {
-        as.character(jsonlite::toJSON(x, ...))
-    }
+    .is_scalar(x) && is.numeric(x)
+}
+
+.is_scalar_logical <-
+    function(x)
+{
+    .is_scalar(x) && is.logical(x)
 }

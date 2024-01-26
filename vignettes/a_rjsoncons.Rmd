@@ -1,0 +1,359 @@
+---
+title: "Using 'jsoncons' in R"
+author:
+- name: Martin Morgan
+  affiliation: Roswell Park Comprehensive Cancer Center, Buffalo, NY, US
+- name: Marcel Ramos
+  affiliation: CUNY School of Public Health at Hunter College, New York, NY, US
+output:
+  BiocStyle::html_document
+vignette: |
+  %\VignetteIndexEntry{Using the 'jsoncons' Library in R}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE
+)
+```
+
+# Introduction & installation
+
+This package provides the header-only '[jsoncons][]' library for
+manipulating JSON objects. Use [rjsoncons][] for querying JSON or R
+objects using [JMESpath][], [JSONpath][], or [JSONpointer][]. Link to
+the package for direct access to the 'jsoncons' C++ library.
+
+[jsoncons]: https://github.com/danielaparker/jsoncons/
+[rjsoncons]: https://mtmorgan.github.io/rjsoncons/
+[JSONpath]: https://goessner.net/articles/JsonPath/
+[JMESpath]: https://jmespath.org/
+[JSONpointer]: https://datatracker.ietf.org/doc/html/rfc6901
+
+Install the released package version from CRAN
+
+```{r install, eval = FALSE}
+install.packages("rjsoncons", repos = "https://CRAN.R-project.org")
+```
+
+Install the development version with
+
+```{r install_github, eval = FALSE}
+if (!requireNamespace("remotes", quiety = TRUE))
+    install.packages("remotes", repos = "https://CRAN.R-project.org")
+remotes::install_github("mtmorgan/rjsoncons")
+```
+
+Attach the installed package to your *R* session, and check the
+version of the C++ library in use
+
+```{r library, messages = FALSE}
+library(rjsoncons)
+rjsoncons::version()
+```
+
+# JSON Use cases
+
+## Select, filter and transform with `j_query()`
+
+Here is a simple JSON example document
+
+```{r json_example}
+json <- '{
+  "locations": [
+    {"name": "Seattle", "state": "WA"},
+    {"name": "New York", "state": "NY"},
+    {"name": "Bellevue", "state": "WA"},
+    {"name": "Olympia", "state": "WA"}
+  ]
+}'
+```
+
+There are several common use cases. Use [rjsoncons][] to query the
+JSON string using [JSONpath][], [JMESpath][] or [JSONpointer][]
+syntax to filter larger documents to records of interest, e.g., only
+cities in New York state, using 'JMESpath' syntax.
+
+```{r j_query}
+j_query(json, "locations[?state == 'NY']") |>
+    cat("\n")
+```
+
+Use the `as = "R"` argument to extract deeply nested elements as *R*
+objects, e.g., a character vector of city names in Washington state.
+
+```{r as_arg}
+j_query(json, "locations[?state == 'WA'].name", as = "R")
+```
+
+The JSON Pointer specification is simpler, indexing a single object in
+the document. JSON arrays are 0-based.
+
+```{r jsonpointer}
+j_query(json, "/locations/0/state")
+```
+
+The examples above use `j_query()`, which automatically infers query
+specification from the form of `path` using `j_path_type()`. It may be
+useful to indicate query specification more explicitly using
+`jsonpointer()`, `jsonpath()`, or `jmespath()`; examples illustrating
+features available for each query specification are on the help pages
+`?jsonpointer`, `?jsonpath`, and `?jmespath`.
+
+## Array-of-objects to *R* data.frame with `j_pivot()`
+
+The following transforms a nested JSON document into a format that can
+be incorporated directly in *R* as a `data.frame`.
+
+```{r array_of_objects}
+path <- '{
+    name: locations[].name,
+    state: locations[].state
+}'
+j_query(json, path, as = "R") |>
+    data.frame()
+```
+
+The transformation from JSON 'array-of-objects' to 'object-of-arrays'
+suitable for direct representation as a `data.frame` is common, and is
+implemented directly as `j_pivot()`
+
+```{r j_pivot}
+j_pivot(json, "locations", as = "data.frame")
+```
+
+`j_pivot()` also support `as = "tibble"` when the [dplyr][] package is
+installed.
+
+[purrr]: https://CRAN.R-project.org/package=purrr
+[dplyr]: https://CRAN.R-project.org/package=dplyr
+[tidyr]: https://CRAN.R-project.org/package=tidyr
+[r4ds]: https://r4ds.hadley.nz/
+[hierarchical data]: https://r4ds.hadley.nz/rectangling
+
+## *R* objects as input
+
+[rjsoncons][] can filter and transform _R_ objects. These are
+converted to JSON using `jsonlite::toJSON()` before queries are made;
+`toJSON()` arguments like `auto_unbox = TRUE` can be added to the
+function call.
+
+```{r r_list}
+## `lst` is an *R* list
+lst <- jsonlite::fromJSON(json, simplifyVector = FALSE)
+j_query(lst, "locations[?state == 'WA'].name | sort(@)", auto_unbox = TRUE) |>
+    cat("\n")
+```
+
+# NDJSON support
+
+[rjsoncons][] supports [NDJSON][] (new-line delimited JSON). NDJSON
+consists of a file or character vector where each line / element
+represents a JSON record. This example uses data from the [GitHub
+Archive][] project recording all actions on public GitHub
+repositories. The data included in the package are the first 10 lines
+of <https://data.gharchive.org/2023-02-08-0.json.gz>. 
+
+```{r}
+ndjson_file <-
+    system.file(package = "rjsoncons", "extdata", "2023-02-08-0.json")
+```
+
+NDJSON can be read into R (`ndjson <- readLines(ndjson_file)`) and
+used in `j_query()` / `j_pivot()`, but it is often better to leave
+full NDJSON files on disk. Thus the first argument to `j_query()` or
+`j_pivot()` is usually a (text or gz-compressed) file path or URL.
+Two additional options are available when working with
+NDJSON. `n_records` limits the number of records processed. Using
+`n_records` can be very useful when exploring the data. For instance,
+the first record of a file can be viewed interactively with
+
+```{r ndjson_listviewer, eval = FALSE}
+j_query(ndjson_file, n_records = 1) |>
+    listviewer::jsonedit()
+```
+
+The option `verbose = TRUE` adds a progress indicator, which provides
+confidence that progress is being made while parsing large files. The
+progress bar requires the [cli][] package.
+
+`j_query()` provides a one-to-one mapping of NDJSON lines / elements
+to the return value, e.g., `j_query(ndjson_file, "@", as = "string")`
+on an NDJSON file with 1000 lines will return a character vector of
+1000 elements, or with `j_query(ndjson, "@", as = "R")` an *R* list
+with length 1000.
+
+```{r ndjson_j_query}
+j_query(ndjson_file, "{id: id, type: type}", n_records = 5)
+```
+
+`j_pivot()` transforms an NDJSON file or character vector of objects
+into a format convenient for input in *R*. `j_pivot()` with NDJSON
+files and JMESpath paths work particularly well together, because
+JMESpath provides flexibility in creating JSON objects to be pivoted.
+
+```{r ndjson_j_pivot}
+j_pivot(ndjson_file, "{id: id, type: type}", as = "data.frame")
+```
+
+Filtering NDJSON files can require relatively more complicated paths,
+e.g., to filter 'PushEvent' types from organizations, construct a
+query that acts on each NDJSON record to return an array of a single
+object, then apply a filter to replace uninteresting elements with
+0-length arrays (using `as = "tibble"` often transforms the *R*
+list-of-vectors to a tibble in a more pleasing and robust manner
+compared to `as = "data.frame"`).
+
+```{r ndjson_j_pivot_filter}
+path <-
+    "[{id: id, type: type, org: org}]
+         [?@.type == 'PushEvent' && @.org != null]"
+j_pivot(ndjson_file, path, as = "data.frame")
+```
+
+A more complete example is used in the [NDJSON extended
+vignette][ndjson-extended]
+
+[NDJSON]: https://ndjson.org/
+[GitHub Archive]: https://www.gharchive.org/
+[ndjson-extended]: https://mtmorgan.github.io/rjsoncons/articles/b_ndjson_extended.html
+[cli]: https://CRAN.R-project.org/package=cli
+
+# The JSON parser
+
+The package includes a JSON parser, used with the argument `as = "R"`
+or directly with `as_r()`
+
+``` r
+as_r('{"a": 1.0, "b": [2, 3, 4]}') |>
+    str()
+#> List of 2
+#>  $ a: num 1
+#>  $ b: int [1:3] 2 3 4
+```
+
+The main rules of this transformation are outlined here.  JSON arrays
+of a single type (boolean, integer, double, string) are transformed to
+*R* vectors of the same length and corresponding type.
+
+```{r as_r}
+as_r('[true, false, true]') # boolean -> logical
+as_r('[1, 2, 3]')           # integer -> integer
+as_r('[1.0, 2.0, 3.0]')     # double  -> numeric
+as_r('["a", "b", "c"]')     # string  -> character
+```
+
+JSON arrays mixing integer and double values are transformed to
+*R* numeric vectors.
+
+```{r as_r_integer_numeric}
+as_r('[1, 2.0]') |> class() # numeric
+```
+
+If a JSON integer array contains a value larger than *R*'s 32-bit
+integer representation, the array is transformed to an *R* numeric
+vector. NOTE that this results in loss of precision for JSON integer
+values greater than `2^53`.
+
+```{r as_r_64_bit}
+as_r('[1, 2147483648]') |> class()  # 64-bit integers -> numeric
+```
+
+JSON objects are transformed to *R* named lists.
+
+```{r as_r_objects}
+as_r('{}')
+as_r('{"a": 1.0, "b": [2, 3, 4]}') |> str()
+```
+
+There are several additional details. A JSON scalar and a JSON vector
+of length 1 are represented in the same way in *R*.
+
+```{r as_r_scalars}
+identical(as_r("3.14"), as_r("[3.14]"))
+```
+
+JSON arrays mixing types other than integer and double are transformed to
+*R* lists
+
+```{r as_r_mixed_arrays}
+as_r('[true, 1, "a"]') |> str()
+```
+
+JSON `null` values are represented as *R* `NULL` values; arrays of
+`null` are transformed to lists
+
+```{r as_r_null}
+as_r('null')                  # NULL
+as_r('[null]') |> str()       # list(NULL)
+as_r('[null, null]') |> str() # list(NULL, NULL)
+```
+
+Ordering of object members is controlled by the `object_names=`
+argument. The default preserves names as they appear in the JSON
+definition; use `"sort"` to sort names alphabetically. This argument
+is applied recursively.
+
+```{r as_r_field_order}
+json <- '{"b": 1, "a": {"d": 2, "c": 3}}'
+as_r(json) |> str()
+as_r(json, object_names = "sort") |> str()
+```
+
+The parser corresponds approximately to `jsonlite::fromJSON()` with
+arguments `simplifyVector = TRUE, simplifyDataFrame = FALSE,
+simplifyMatrix = FALSE)`. Unit tests (using the [tinytest][]
+framework) providing additional details are available at
+
+```{r as_r_tiny_test_source, eval = FALSE}
+system.file(package = "rjsoncons", "tinytest", "test_as_r.R")
+```
+
+[tinytest]: https://CRAN.R-project.org/package=tinytest
+
+## Using `jsonlite::fromJSON()`
+
+The built-in parser can be replaced by alternative parsers by returning
+the query as a JSON string, e.g., using the `fromJSON()` in the
+[jsonlite][] package.
+
+```{r jsonlite_fromJSON}
+j_query(json, "locations[?state == 'WA']") |>
+    ## `fromJSON()` simplifies list-of-objects to data.frame
+    jsonlite::fromJSON()
+```
+
+[jsonlite]: https://CRAN.R-project.org/package=jsonlite
+
+The [rjsoncons][] package is particularly useful when accessing
+elements that might otherwise require complicated application of
+nested `lapply()`, [purrr][] expressions, or [tidyr][] `unnest_*()`
+(see [R for Data Science][r4ds] chapter '[Hierarchical data][]').
+
+# C++ library use in other packages
+
+The package includes the complete 'jsoncons' C++ header-only library,
+available to other R packages by adding
+
+```
+LinkingTo: rjsoncons
+SystemRequirements: C++11
+```
+
+to the DESCRIPTION file. Typical use in an R package would also
+include `LinkingTo:` specifications for the [cpp11][] or [Rcpp][]
+(this package uses [cpp11][]) packages to provide a C / C++ interface
+between R and the C++ 'jsoncons' library.
+
+[cpp11]: https://cran.r-project.org/package=cpp11
+[Rcpp]: https://cran.r-project.org/package=Rcpp
+
+# Session information
+
+This vignette was compiled using the following software versions
+
+```{r session_info}
+sessionInfo()
+```

@@ -1,11 +1,14 @@
-#ifndef RJSONCONS_AS_R_HPP
-#define RJSONCONS_AS_R_HPP
+#ifndef RJSONCONS_J_AS_HPP
+#define RJSONCONS_J_AS_HPP
 
-#include <cpp11/declarations.hpp>
-#include <jsoncons/json.hpp>
 #include <numeric>
+#include <jsoncons/json.hpp>
+#include <cpp11.hpp>
+
+#include "utilities.h"
 
 using namespace jsoncons;
+using namespace rjsoncons;
 
 enum class r_type : uint8_t
 {
@@ -119,7 +122,7 @@ r_type r_vector_type(const Json j)
 }
 
 template<class cpp11_t, class json_t, class Json>
-sexp as_r_vector(const Json j)
+sexp j_as_r_vector(const Json j)
 {
     cpp11_t value(j.size());
     std::transform(
@@ -163,19 +166,19 @@ sexp as_r(const Json j)
             break;
         }
         case r_type::logical_value: {
-            result = as_r_vector<writable::logicals, bool>(j);
+            result = j_as_r_vector<writable::logicals, bool>(j);
             break;
         }
         case r_type::integer_value: {
-            result = as_r_vector<writable::integers, int32_t>(j);
+            result = j_as_r_vector<writable::integers, int32_t>(j);
             break;
         }
         case r_type::numeric_value: {
-            result = as_r_vector<writable::doubles, double>(j);
+            result = j_as_r_vector<writable::doubles, double>(j);
             break;
         }
         case r_type::character_value: {
-            result = as_r_vector<writable::strings, std::string>(j);
+            result = j_as_r_vector<writable::strings, std::string>(j);
             break;
         }
         case r_type::vector_value:
@@ -206,6 +209,25 @@ sexp as_r(const Json j)
     }}
 
     return result;
+}
+
+// json to R
+
+template<class Json>
+cpp11::sexp j_as(Json j, rjsoncons::as as)
+{
+    switch(as) {
+    case as::string: return as_sexp( j.template as<std::string>() );
+    case as::R: return as_r<Json>(j);
+    default: cpp11::stop("`as_r()` unknown `as = `");
+    }
+}
+
+template<class Json>
+sexp as_r_impl(const std::string data)
+{
+    Json j = Json::parse(data);
+    return as_r<Json>(j);
 }
 
 #endif

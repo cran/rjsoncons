@@ -7,20 +7,24 @@
 
 The [jsoncons][] C++ header-only library constructs representations
 from a JSON character vector, and provides extensions for flexible
-queries and other operations on JSON objects. This package has simple
-'R' wrappers to support [JSONpath][] and [JMESpath][] queries into JSON
-strings or 'R' objects. The 'jsoncons' library is also be easily
-linked to other packages for direct access to 'C++' functionality.
+queries and other operations on JSON objects. This package provides
+'R' functions to query (filter or transform) and pivot (convert from
+array-of-objects to object-of-arrays, for easy import into 'R') 'JSON'
+or 'NDJSON' strings or files using [JSONpath][], [JMESpath][], and
+[JSONpointer][] expressions. The package also makes it easy to use C++
+'jsoncons' in other *R* packages for direct access to 'C++'
+functionality.
 
 [JSONpath]: https://goessner.net/articles/JsonPath/
 [JMESpath]: https://jmespath.org/
+[JSONpointer]: https://datatracker.ietf.org/doc/html/rfc6901
 
 ## Installation and loading
 
 Install the released package version from CRAN
 
 ``` r
-install.pacakges("rjsoncons", repos = "https://CRAN.R-project.org")
+install.packages("rjsoncons", repos = "https://CRAN.R-project.org")
 ```
 
 Install the development version with
@@ -49,7 +53,7 @@ The [introductory vignette][] outlines common use cases, including:
 - Transforming data for more direct incorporation in *R* data structures.
 
 The [jsoncons][] C++ header-only library is a very useful starting
-point for advance JSON manipulation. The vignette outlines how
+point for advanced JSON manipulation. The vignette outlines how
 [rjsoncons][] can be used by other *R* packages wishing to access the
 C++ library.
 

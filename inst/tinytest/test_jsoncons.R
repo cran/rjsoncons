@@ -11,10 +11,7 @@ datalist <- jsonlite::fromJSON(json, simplifyVector = FALSE)
 
 ## version
 
-expect_identical(
-    version(),
-    "0.172.1 (update bbaf3b73b)"
-)
+expect_identical(version(), "0.173.2")
 
 ## jsonpath
 
@@ -122,4 +119,38 @@ expect_error(jmespath('{"b":"1","a":"2"}', "@", "ASIS"))
 expect_identical(
     jmespath(json, "{ name: locations[].name }"),
     '{"name":["Seattle","New York","Bellevue","Olympia"]}'
+)
+
+## jsonpointer
+
+expect_identical(jsonpointer(json, "/locations/1/name"), "New York")
+
+expect_identical(
+    ## pointer '""' is root document
+    jsonpointer('{"a": 1, "": 2}', ""),
+    '{"a":1,"":2}'
+)
+
+expect_identical(jsonpointer('{"a": 1, "": 2}', ""), '{"a":1,"":2}')
+
+expect_identical(
+    ## '/' alone is unnamed element
+    jsonpointer('{"a": 1, "": 2}', "/"),
+    '2'
+)
+
+expect_error(jsonpointer('{}', "/"), 'Key not found')
+
+expect_error(jsonpointer('{"a": 1}', "/"), 'Key not found')
+
+expect_identical(
+    ## object_names in response
+    jsonpointer('{"b": 1, "a": 2}', "", "asis"),
+    "{\"b\":1,\"a\":2}"
+)
+
+expect_identical(
+    ## as = "R"
+    jsonpointer(json, "/locations/0", as = "R"),
+    list(name = "Seattle", state = "WA")
 )

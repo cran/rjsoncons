@@ -4,14 +4,30 @@ cpp_version <- function() {
   .Call(`_rjsoncons_cpp_version`)
 }
 
-cpp_jsonpath <- function(data, path, jtype, as) {
-  .Call(`_rjsoncons_cpp_jsonpath`, data, path, jtype, as)
+cpp_as_r <- function(data, object_names) {
+  .Call(`_rjsoncons_cpp_as_r`, data, object_names)
 }
 
-cpp_jmespath <- function(data, path, jtype, as) {
-  .Call(`_rjsoncons_cpp_jmespath`, data, path, jtype, as)
+cpp_r_json_init <- function(object_names, path, as, data_type, path_type) {
+  .Call(`_rjsoncons_cpp_r_json_init`, object_names, path, as, data_type, path_type)
 }
 
-cpp_as_r <- function(data, jtype) {
-  .Call(`_rjsoncons_cpp_as_r`, data, jtype)
+cpp_r_json_query <- function(ext, data, object_names) {
+  invisible(.Call(`_rjsoncons_cpp_r_json_query`, ext, data, object_names))
+}
+
+cpp_r_json_pivot <- function(ext, data, object_names) {
+  invisible(.Call(`_rjsoncons_cpp_r_json_pivot`, ext, data, object_names))
+}
+
+cpp_r_json_query_raw <- function(ext, prefix, bin, n_records, object_names) {
+  .Call(`_rjsoncons_cpp_r_json_query_raw`, ext, prefix, bin, n_records, object_names)
+}
+
+cpp_r_json_pivot_raw <- function(ext, prefix, bin, n_records, object_names) {
+  .Call(`_rjsoncons_cpp_r_json_pivot_raw`, ext, prefix, bin, n_records, object_names)
+}
+
+cpp_r_json_finish <- function(ext, object_names) {
+  .Call(`_rjsoncons_cpp_r_json_finish`, ext, object_names)
 }

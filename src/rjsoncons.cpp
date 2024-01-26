@@ -1,13 +1,15 @@
-#include "cpp11/declarations.hpp"
+#include <cpp11/declarations.hpp>
 
 #include <jsoncons/config/version.hpp>
 #include <jsoncons/json.hpp>
-#include <jsoncons_ext/jsonpath/jsonpath.hpp>
-#include <jsoncons_ext/jmespath/jmespath.hpp>
 
-#include "as_r.h"
+#include "utilities.h"
+#include "raw_buffer.h"
+#include "j_as.h"
+#include "r_json.h"
 
-using namespace jsoncons; // for convenience
+using namespace jsoncons;        // convenience
+using namespace cpp11::literals; // _nm
 
 [[cpp11::register]]
 std::string cpp_version()
@@ -19,85 +21,104 @@ std::string cpp_version()
         std::to_string(v.patch);
 }
 
-// use this to switch() on string values
-// https://stackoverflow.com/a/46711735/547331
-constexpr unsigned int hash(const char *s, int off = 0)
-{
-    return !s[off] ? 5381 : (hash(s, off+1)*33) ^ s[off];
-}
-
-// result type
-
-template<class Json>
-sexp json_as(Json j, std::string as)
-{
-    switch(hash(as.c_str())) {
-    case hash("string"): return as_sexp( j.template as<std::string>() );
-    case hash("R"): return as_r<Json>(j);
-    default: cpp11::stop("unknown `as = '" + as + "'`");
-    }
-}
-
-// jsonpath
-
-template<class Json>
-sexp jsonpath_impl(
-    const std::string data, const std::string path,
-    const std::string as)
-{
-    Json j = Json::parse(data);
-    Json result = jsonpath::json_query<Json>(j, path);
-    return json_as(result, as);
-}
-
-[[cpp11::register]]
-sexp cpp_jsonpath(
-    std::string data, std::string path, std::string jtype, std::string as)
-{
-    switch(hash(jtype.c_str())) {
-    case hash("asis"): return jsonpath_impl<ojson>(data, path, as);
-    case hash("sort"): return jsonpath_impl<json>(data, path, as);
-    default: cpp11::stop("unknown `object_names = '" + jtype + "'`");
-    }
-}
-
-// jmespath
-
-template<class Json>
-sexp jmespath_impl(
-    const std::string data, const std::string path, const std::string as)
-{
-    Json j = Json::parse(data);
-    Json result = jmespath::search<Json>(j, path);
-    return json_as(result, as);
-}
-
-[[cpp11::register]]
-sexp cpp_jmespath(
-    std::string data, std::string path, std::string jtype, std::string as)
-{
-    switch(hash(jtype.c_str())) {
-    case hash("asis"): return jmespath_impl<ojson>(data, path, as);
-    case hash("sort"): return jmespath_impl<json>(data, path, as);
-    default: cpp11::stop("unknown `object_names = '" + jtype + "'`");
-    }
-}
-
 // as_r
 
-template<class Json>
-sexp as_r_impl(const std::string data)
+[[cpp11::register]]
+sexp cpp_as_r(std::string data, const std::string object_names)
 {
-    Json j = Json::parse(data);
-    return as_r<Json>(j);
+    switch(enum_index(object_names_map, object_names)) {
+    case object_names::asis: return as_r_impl<ojson>(data);
+    case object_names::sort: return as_r_impl<json>(data);
+    default: cpp11::stop("unknown `object_names = '" + object_names + "'`");
+    }
+}
+
+// r_json
+
+[[cpp11::register]]
+sexp cpp_r_json_init(
+    const std::string object_names,
+    const std::string path,
+    const std::string as,
+    const std::string data_type,
+    const std::string path_type
+    )
+{
+    switch(enum_index(object_names_map, object_names)) {
+    case object_names::asis:
+        return r_json_init<ojson>(path, as, data_type, path_type);
+    case object_names::sort:
+        return r_json_init<json>(path, as, data_type, path_type);
+    default: cpp11::stop("unknown `object_names = '" + object_names + "'`");
+    }
 }
 
 [[cpp11::register]]
-sexp cpp_as_r(std::string data, std::string jtype)
+void cpp_r_json_query(
+    sexp ext,
+    const std::vector<std::string> data,
+    const std::string object_names)
 {
-    switch(hash(jtype.c_str())) {
-    case hash("asis"): return as_r_impl<ojson>(data);
-    case hash("sort"): return as_r_impl<json>(data);
-    default: cpp11::stop("unknown `object_names = '" + jtype + "'`");
+    switch(enum_index(object_names_map, object_names)) {
+    case object_names::asis: { r_json_query<ojson>(ext, data); break; }
+    case object_names::sort: { r_json_query<json>(ext, data); break; }
+    default: cpp11::stop("unknown `object_names = '" + object_names + "'`");
+    }
+}
+
+[[cpp11::register]]
+void cpp_r_json_pivot(
+    sexp ext,
+    const std::vector<std::string> data,
+    const std::string object_names)
+{
+    switch(enum_index(object_names_map, object_names)) {
+    case object_names::asis: { r_json_pivot<ojson>(ext, data); break; }
+    case object_names::sort: { r_json_pivot<json>(ext, data); break; }
+    default: cpp11::stop("unknown `object_names = '" + object_names + "'`");
+    }
+}
+
+// 'raw' versions of query and pivot
+
+[[cpp11::register]]
+cpp11::list cpp_r_json_query_raw(
+    sexp ext,
+    raws prefix, raws bin, int n_records,
+    const std::string object_names)
+{
+    rjsoncons::raw_buffer buffer(prefix, bin, n_records);
+    const std::vector<std::string> data = buffer.to_strings();
+    cpp_r_json_query(ext, data, object_names);
+
+    return cpp11::list({
+            "prefix"_nm = buffer.remainder(),
+            "n_lines"_nm = data.size()
+        });
+}
+
+[[cpp11::register]]
+cpp11::list cpp_r_json_pivot_raw(
+    sexp ext,
+    const raws prefix, const raws bin, int n_records,
+    const std::string object_names)
+{
+    rjsoncons::raw_buffer buffer(prefix, bin, n_records);
+    const std::vector<std::string> data = buffer.to_strings();
+    cpp_r_json_pivot(ext, data, object_names);
+
+    return cpp11::list({
+            "prefix"_nm = buffer.remainder(),
+            "n_lines"_nm = data.size()
+        });
+}
+
+[[cpp11::register]]
+cpp11::sexp cpp_r_json_finish(sexp ext, const std::string object_names)
+{
+    switch(enum_index(object_names_map, object_names)) {
+    case object_names::asis: return r_json_finish<ojson>(ext);
+    case object_names::sort: return r_json_finish<json>(ext);
+    default: cpp11::stop("unknown `object_names = '" + object_names + "'`");
     }
 }
