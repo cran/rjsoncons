@@ -1,11 +1,13 @@
-#' @rdname paths_and_pointer
+#' @rdname zzz_paths_and_pointer
 #'
-#' @title JSONpath, JMESpath, or JSONpointer query of JSON / NDJSON documents
+#' @title JSONpath, JMESpath, or JSONpointer query of JSON / NDJSON
+#'     documents; use `j_query()` instead
 #'
 #' @description `jsonpath()` executes a query against a JSON string or
 #'     vector NDJSON entries using the 'JSONpath' specification.
 #'
-#' @param data a character() JSON string or NDJSON records, or an *R*
+#' @param data a character() JSON string or NDJSON records, or the
+#'     name of a file or URL containing JSON or NDJSON, or an *R*
 #'     object parsed to a JSON string using `jsonlite::toJSON()`.
 #'
 #' @param path character(1) JSONpointer, JSONpath or JMESpath query
@@ -85,7 +87,7 @@ jsonpath <-
     j_query(data, path, object_names, as, ..., path_type = "JSONpath")
 }
 
-#' @rdname paths_and_pointer
+#' @rdname zzz_paths_and_pointer
 #'
 #' @description `jmespath()` executes a query against a JSON string
 #'     using the 'JMESpath' specification.
@@ -113,7 +115,7 @@ jmespath <-
     j_query(data, path, object_names, as, ..., path_type = "JMESpath")
 }
 
-#' @rdname paths_and_pointer
+#' @rdname zzz_paths_and_pointer
 #'
 #' @description `jsonpointer()` extracts an element from a JSON string
 #'     using the 'JSON pointer' specification.

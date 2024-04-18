@@ -4,7 +4,8 @@
 \alias{jsonpath}
 \alias{jmespath}
 \alias{jsonpointer}
-\title{JSONpath, JMESpath, or JSONpointer query of JSON / NDJSON documents}
+\title{JSONpath, JMESpath, or JSONpointer query of JSON / NDJSON
+documents; use \code{j_query()} instead}
 \usage{
 jsonpath(data, path, object_names = "asis", as = "string", ...)
 
@@ -13,7 +14,8 @@ jmespath(data, path, object_names = "asis", as = "string", ...)
 jsonpointer(data, path, object_names = "asis", as = "string", ...)
 }
 \arguments{
-\item{data}{a character() JSON string or NDJSON records, or an \emph{R}
+\item{data}{a character() JSON string or NDJSON records, or the
+name of a file or URL containing JSON or NDJSON, or an \emph{R}
 object parsed to a JSON string using \code{jsonlite::toJSON()}.}
 
 \item{path}{character(1) JSONpointer, JSONpath or JMESpath query

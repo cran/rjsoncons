@@ -1,9 +1,10 @@
-#ifndef RJSONCONS_UTILITIES_H
-#define RJSONCONS_UTILITIES_H
+#ifndef RJSONCONS_ENUM_INDEX_H
+#define RJSONCONS_ENUM_INDEX_H
 
 #include <string>
 #include <map>
-#include <cpp11.hpp>
+
+#include <cpp11/protect.hpp>
 
 namespace rjsoncons {           // enums
 
@@ -33,11 +34,12 @@ namespace rjsoncons {           // enums
     // R string to enum value.
     template<class T>
     T enum_index(
-        const std::map<std::string, T>& enum_map, const std::string key)
+        const std::map<std::string, T>& enum_map, const std::string& key)
     {
         auto value = enum_map.find(key);
-        if (value == std::end(enum_map))
+        if (value == std::end(enum_map)) {
             cpp11::stop("'" + key + "' unknown");
+        }
 
         return value->second;
     }

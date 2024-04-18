@@ -3,12 +3,20 @@
 
 #include <numeric>
 #include <jsoncons/json.hpp>
-#include <cpp11.hpp>
-
-#include "utilities.h"
 
 using namespace jsoncons;
+
+#include "enum_index.h"
 using namespace rjsoncons;
+
+#include <cpp11/list.hpp>
+#include <cpp11/logicals.hpp>
+#include <cpp11/integers.hpp>
+#include <cpp11/doubles.hpp>
+#include <cpp11/strings.hpp>
+#include <cpp11/protect.hpp>    // stop
+
+using namespace cpp11;
 
 enum class r_type : uint8_t
 {
@@ -27,7 +35,7 @@ bool is_integer(Int64_t int64_value)
     // can a 64-bit signed or unsigned int be represented as (signed)
     // int32_t?  'volatile' writes data to avoid compiler
     // 'optimization' that would short-circuit the test
-    volatile int32_t int32_value = static_cast<int32_t>(int64_value);
+    volatile auto int32_value = static_cast<int32_t>(int64_value);
     return
         int32_value != R_NaInt &&
         static_cast<Int64_t>(int32_value) == int64_value;
@@ -90,8 +98,10 @@ r_type r_vector_type(const Json j)
 
         // promotions
         if (t != rt) {
-            if (t > rt)         // simplify comparisons by ordering low to high
+            if (t > rt) {
+                // simplify comparisons by ordering low to high
                 std::swap(t, rt);
+            }
             if (t == r_type::integer_value) { // 'number'
                 bool is_number =
                     rt == r_type::integer_value || rt == r_type::numeric_value;
@@ -121,7 +131,7 @@ r_type r_vector_type(const Json j)
     return t;
 }
 
-template<class cpp11_t, class json_t, class Json>
+template<class Json, class cpp11_t, class json_t>
 sexp j_as_r_vector(const Json j)
 {
     cpp11_t value(j.size());
@@ -132,10 +142,10 @@ sexp j_as_r_vector(const Json j)
 }
 
 template<class Json>
-sexp as_r(const Json j)
+sexp j_as_r(const Json j)
 {
     sexp result;
-    r_type rtype = r_atomic_type(j);
+    const r_type rtype = r_atomic_type(j);
 
     switch(rtype) {
     case r_type::null_value: {
@@ -159,48 +169,48 @@ sexp as_r(const Json j)
         break;
     }
     case r_type::vector_value: {
-        r_type member_type = r_vector_type(j);
+        const r_type member_type = r_vector_type(j);
         switch(member_type) {
         case r_type::null_value: {
             result = writable::list(j.size()); // default: NULL elements
             break;
         }
         case r_type::logical_value: {
-            result = j_as_r_vector<writable::logicals, bool>(j);
+            result = j_as_r_vector<Json, writable::logicals, bool>(j);
             break;
         }
         case r_type::integer_value: {
-            result = j_as_r_vector<writable::integers, int32_t>(j);
+            result = j_as_r_vector<Json, writable::integers, int32_t>(j);
             break;
         }
         case r_type::numeric_value: {
-            result = j_as_r_vector<writable::doubles, double>(j);
+            result = j_as_r_vector<Json, writable::doubles, double>(j);
             break;
         }
         case r_type::character_value: {
-            result = j_as_r_vector<writable::strings, std::string>(j);
+            result = j_as_r_vector<Json, writable::strings, std::string>(j);
             break;
         }
         case r_type::vector_value:
         case r_type::list_value: {
-            writable::list value(j.size());
+            const writable::list value(j.size());
             std::transform(
                 j.array_range().cbegin(), j.array_range().cend(), value.begin(),
-                [](const Json j_elt) { return as_r(j_elt); });
+                [](const Json j_elt) { return j_as_r(j_elt); });
             result = value;
             break;
         }}
         break;                  // r_type::vector_value
     }
     case r_type::list_value: {
-        writable::list value(j.size());
-        writable::strings names(j.size());
+        const writable::list value(j.size());
+        const writable::strings names(j.size());
         auto range = j.object_range();
 
         int i = 0;
         for (auto it = range.cbegin(); it != range.cend(); ++it, ++i) {
             names[i] = it->key();
-            value[i] = as_r(it->value());
+            value[i] = j_as_r(it->value());
         }
 
         value.names() = names;
@@ -214,20 +224,19 @@ sexp as_r(const Json j)
 // json to R
 
 template<class Json>
-cpp11::sexp j_as(Json j, rjsoncons::as as)
+sexp j_as(Json j, rjsoncons::as as)
 {
     switch(as) {
     case as::string: return as_sexp( j.template as<std::string>() );
-    case as::R: return as_r<Json>(j);
+    case as::R: return j_as_r<Json>(j);
     default: cpp11::stop("`as_r()` unknown `as = `");
     }
 }
 
 template<class Json>
-sexp as_r_impl(const std::string data)
+sexp j_as(Json j, const std::string& as)
 {
-    Json j = Json::parse(data);
-    return as_r<Json>(j);
+    return j_as(j, enum_index(as_map, as));
 }
 
 #endif

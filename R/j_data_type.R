@@ -33,7 +33,7 @@
 
 #' @rdname j_data_type
 #'
-#' @title Detect JSON / NDJSON data and path types
+#' @title Detect JSON and NDJSON data and path types
 #'
 #' @description `j_data_type()` uses simple rules to determine whether
 #'     'data' is JSON, NDJSON, file, url, or R.
@@ -93,9 +93,9 @@ j_data_type <-
         if (length(data) == 1L) {
             ## url or file path or json
             if (length(grep("^https?://", data))) {
-                c(j_data_type(readLines(data, 2L)), "url")
+                c(j_data_type(readLines(data, 2L, warn = FALSE)), "url")
             } else if (file.exists(data)) {
-                c(j_data_type(readLines(data, 2L)), "file")
+                c(j_data_type(readLines(data, 2L, warn = FALSE)), "file")
             } else if (.is_scalar_character(data) && !inherits(data, "AsIs")) {
                 "json"
             } else {

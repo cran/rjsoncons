@@ -1,5 +1,5 @@
 ---
-title: "Using 'jsoncons' in R"
+title: "Transform and Validate JSON and NDJSON"
 author:
 - name: Martin Morgan
   affiliation: Roswell Park Comprehensive Cancer Center, Buffalo, NY, US
@@ -8,7 +8,7 @@ author:
 output:
   BiocStyle::html_document
 vignette: |
-  %\VignetteIndexEntry{Using the 'jsoncons' Library in R}
+  %\VignetteIndexEntry{Transform and Validate JSON and NDJSON}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -21,16 +21,19 @@ knitr::opts_chunk$set(
 
 # Introduction & installation
 
-This package provides the header-only '[jsoncons][]' library for
-manipulating JSON objects. Use [rjsoncons][] for querying JSON or R
-objects using [JMESpath][], [JSONpath][], or [JSONpointer][]. Link to
-the package for direct access to the 'jsoncons' C++ library.
+Use [rjsoncons][] for querying, transforming, and searching JSON,
+NDJSON, or R objects using [JMESpath][], [JSONpath][], or
+[JSONpointer][]. [rjsoncons][] supports [JSON patch][] for document
+editing, and [JSON schema][] validation. Link to the package for
+direct access to additional features in the [jsoncons][] C++ library.
 
 [jsoncons]: https://github.com/danielaparker/jsoncons/
 [rjsoncons]: https://mtmorgan.github.io/rjsoncons/
 [JSONpath]: https://goessner.net/articles/JsonPath/
 [JMESpath]: https://jmespath.org/
 [JSONpointer]: https://datatracker.ietf.org/doc/html/rfc6901
+[JSON patch]: https://jsonpatch.com/
+[JSON schema]: https://json-schema.org/
 
 Install the released package version from CRAN
 
@@ -54,7 +57,11 @@ library(rjsoncons)
 rjsoncons::version()
 ```
 
-# JSON Use cases
+# Query and pivot
+
+Functions in this package work on JSON or NDJSON character vectors,
+file paths and URLs to JSON or NDJSON documents, and *R* objects that
+can be transformed to a JSON string.
 
 ## Select, filter and transform with `j_query()`
 
@@ -133,28 +140,14 @@ installed.
 [r4ds]: https://r4ds.hadley.nz/
 [hierarchical data]: https://r4ds.hadley.nz/rectangling
 
-## *R* objects as input
-
-[rjsoncons][] can filter and transform _R_ objects. These are
-converted to JSON using `jsonlite::toJSON()` before queries are made;
-`toJSON()` arguments like `auto_unbox = TRUE` can be added to the
-function call.
-
-```{r r_list}
-## `lst` is an *R* list
-lst <- jsonlite::fromJSON(json, simplifyVector = FALSE)
-j_query(lst, "locations[?state == 'WA'].name | sort(@)", auto_unbox = TRUE) |>
-    cat("\n")
-```
-
-# NDJSON support
+## NDJSON support
 
 [rjsoncons][] supports [NDJSON][] (new-line delimited JSON). NDJSON
 consists of a file or character vector where each line / element
 represents a JSON record. This example uses data from the [GitHub
 Archive][] project recording all actions on public GitHub
 repositories. The data included in the package are the first 10 lines
-of <https://data.gharchive.org/2023-02-08-0.json.gz>. 
+of <https://data.gharchive.org/2023-02-08-0.json.gz>.
 
 ```{r}
 ndjson_file <-
@@ -220,6 +213,308 @@ vignette][ndjson-extended]
 [GitHub Archive]: https://www.gharchive.org/
 [ndjson-extended]: https://mtmorgan.github.io/rjsoncons/articles/b_ndjson_extended.html
 [cli]: https://CRAN.R-project.org/package=cli
+
+## *R* objects as input
+
+[rjsoncons][] can filter and transform _R_ objects. These are
+converted to JSON using `jsonlite::toJSON()` before queries are made;
+`toJSON()` arguments like `auto_unbox = TRUE` can be added to the
+function call.
+
+```{r r_list}
+## `lst` is an *R* list
+lst <- jsonlite::fromJSON(json, simplifyVector = FALSE)
+j_query(lst, "locations[?state == 'WA'].name | sort(@)", auto_unbox = TRUE) |>
+    cat("\n")
+```
+
+# Patch
+
+[JSON Patch][] provides a simple way to edit or transform a JSON
+document using JSON commands.
+
+## Applying a patch with `j_patch_apply()`
+
+Starting with the JSON document
+
+```{r}
+json <- '{
+  "biscuits": [
+    { "name": "Digestive" },
+    { "name": "Choco Leibniz" }
+  ]
+}'
+```
+
+one can `"add"` another biscuit, and copy a favorite biscuit to a new
+locations using the following patch
+
+```{r}
+patch <- '[
+    {"op": "add", "path": "/biscuits/1", "value": { "name": "Ginger Nut" }},
+    {"op": "copy", "from": "/biscuits/2", "path": "/best_biscuit"}
+]'
+```
+
+The paths are specified using [JSONpointer][] notation; remember that
+JSON arrays are 0-based, compared to 1-based *R* arrays. Applying the
+patch results in a new JSON document.
+
+```{r}
+j_patch_apply(json, patch)
+```
+
+Patches can also be created from *R* objects with the helper function
+`j_patch_op()`.
+
+```{r}
+ops <- c(
+    j_patch_op(
+        "add", "/biscuits/1", value = list(name = "Ginger Nut"),
+        auto_unbox = TRUE
+    ),
+    j_patch_op("copy", "/best_biscuit", from = "/biscuits/2")
+)
+identical(j_patch_apply(json, patch), j_patch_apply(json, ops))
+```
+
+`j_patch_op()` takes care of unboxing `op=`, `path=`, and `from=`, but
+some care must be taken in 'unboxing' the `value=` argument for
+operations such as 'add'; it may also be appropriate to unbox only
+specific fields, e.g.,
+
+```{r}
+value <- list(name = jsonlite::unbox("Ginger Nut"))
+j_patch_op("add", "/biscuits/1", value = value)
+```
+
+From the [JSON patch][] web site, available operations and example
+JSON are:
+
+- `add` -- add elements to an existing document.
+
+    ```
+    {"op": "add", "path": "/biscuits/1", "value": {"name": "Ginger Nut"}}
+    ```
+
+- `remove` -- remove elements from a document.
+
+    ```
+    {"op": "remove", "path": "/biscuits/0"}
+    ```
+
+- `replace` -- replace one element with another
+
+    ```
+    {
+        "op": "replace", "path": "/biscuits/0/name",
+        "value": "Chocolate Digestive"
+    }
+    ```
+
+- `copy` -- copy a path to another location.
+
+    ```
+    {"op": "copy", "from": "/biscuits/0", "path": "/best_biscuit"}
+    ```
+
+- `move` -- move a path to another location.
+
+    ```
+    {"op": "move", "from": "/biscuits", "path": "/cookies"}
+    ```
+
+- `test` -- test for the existence of a path; if the path does not
+  exist, do not apply any of the patch.
+
+    ```
+    {"op": "test", "path": "/best_biscuit/name", "value": "Choco Leibniz"}
+    ```
+
+Formal description of these operations is provided in Section 4 of
+[RFC6902][]. A patch command is *always* an array, even when a single
+operation is involved.
+
+## Difference between documents with `j_patch_from()`
+
+The `j_patch_from()` function constructs a patch from the difference
+between two documents
+
+```{r}
+j_patch_from(j_patch_apply(json, patch), json)
+```
+
+[JSON Patch]: https://jsonpatch.com/
+[RFC6902]: https://datatracker.ietf.org/doc/html/rfc6902/#section-4
+
+# Schema validation
+
+[JSON schema][] provides structure to JSON
+documents. `j_schema_is_valid()` checks that a JSON document is valid
+against a specified schema, and `j_schema_validate()` tries to
+illustrate how a document deviates from the schema.
+
+As an example consider `j_patch_op()`, where the operation is supposed
+to conform to the [JSON patch][] schema. For convenience, a copy of
+this schema is available in [rjsoncons][].
+
+```{r}
+## alternatively: schema <- "https://json.schemastore.org/json-patch"
+schema <- system.file(package = "rjsoncons", "extdata", "json-patch.json")
+cat(readLines(schema), sep = "\n")
+```
+
+The well-formed 'op' is valid, and `j_schema_validate()` produces no output
+
+```{r valid-schema}
+op <- '[{
+    "op": "add", "path": "/biscuits/1",
+    "value": { "name": "Ginger Nut" }
+}]'
+j_schema_is_valid(op, schema)
+j_schema_validate(op, schema)
+```
+
+Introduce an invalid 'op', `"op": "invalid_op"`, and the schema is no
+longer valid.
+
+```{r invalid-schema}
+op <- '[{
+    "op": "invalid_op", "path": "/biscuits/1",
+    "value": { "name": "Ginger Nut" }
+}]'
+j_schema_is_valid(op, schema)
+```
+
+The reason can be understood from (careful!) consideration of the
+output of `j_schema_validate()`, with reference to the schema itself.
+
+```{r invalid-schema-tibble}
+j_schema_validate(op, schema, as = "tibble") |>
+    tibble::glimpse()
+```
+
+The validation indicates that the schema `evaluationPath`
+'/items/oneOf' is not satisfied, because of the `error` 'No schema
+[i.e., 'oneOf' elements] matched, ...'.
+
+The 'details' column summarizes why each of the 3 elements of
+`/items/oneOf` fails the schema specification; use `as = "details"` to
+extract this directly
+
+```{r invalid-schema-details}
+j_schema_validate(op, schema, as = "details") |>
+    tibble::glimpse()
+```
+
+This indicates that the first item in the schema is rejected because
+'invalid_op' is not a valid enum
+
+```{r invalid-schema-0}
+j_query(schema, "/items/oneOf/0/properties/op/enum") |>
+    noquote()
+```
+
+Reasons for rejecting other items can be explored using similar steps.
+
+# Flatten and find
+
+It can sometimes be helpful to explore JSON documents by 'flattening'
+the JSON to an object of path / value pairs, where the path is the
+[JSONpointer][] path to the corresponding value. It is then
+straight-forward to search this flattened object for, e.g., the path
+to a known field or value. As an example, consider the object
+
+```{r}
+codes <- '{
+    "discards": {
+        "1000": "Record does not exist",
+        "1004": "Queue limit exceeded",
+        "1010": "Discarding timed-out partial msg"
+    },
+    "warnings": {
+        "0": "Phone number missing country code",
+        "1": "State code missing",
+        "2": "Zip code missing"
+    }
+}'
+```
+
+The 'flat' JSON of this can be represented as named list (using
+`str()` to provide a compact visual representation)
+
+```{r}
+j_flatten(codes, as = "R") |>
+    str()
+```
+
+The names of the list are JSONpointer (default) or JSONpath, so can be
+used in `j_query()` and `j_pivot()` as appropriate
+
+```{r}
+j_query(codes, "/discards/1010")
+```
+
+There are two ways to find known keys and values. The first is to use
+exact matching to one or more keys or values, e.g.,
+
+```{r}
+j_find_values(
+    codes, c("Record does not exist", "State code missing"),
+    as = "tibble"
+)
+j_find_keys(codes, "warnings", as = "tibble")
+```
+
+It is also possible to match using a regular expression.
+
+```{r}
+j_find_values_grep(codes, "missing", as = "tibble")
+j_find_keys_grep(codes, "card.*/100", as = "tibble") # span key delimiters
+```
+
+Keys are always character vectors, but values can be of different
+type; `j_find_values()` supports searches on these.
+
+```{r}
+j <- '{"x":[1,[2, 3]],"y":{"a":4}}'
+j_flatten(j, as = "R") |> str()
+j_find_values(j, c(2, 4), as = "tibble")
+```
+
+A common operation might be to find the path to a know value, and then
+to query the original JSON to find the object in which the value is
+contained.
+
+```{r}
+j_find_values(j, 3, as = "tibble")
+## path to '3' is '/x/1/1', so containing object is at '/x/1'
+j_query(j, "/x/1")
+j_query(j, "/x/1", as = "R")
+```
+
+Both JSONpointer and JSONpath are supported; an advantage of the
+latter is that the path distinguishes between integer-valued
+(unquoted) and string-valued (quoted) keys
+
+```{r}
+j_find_values(j, 3, as = "tibble", path_type = "JSONpath")
+```
+
+The first argument to `j_find_*()` can be an *R* object, JSON or
+NDJSON string, file, or URL. Using `j_find_values()` with an *R*
+object and JSONpath `path_type` leads to a path that is easily
+converted into an *R* index: double the `[` and `]` in the path and
+increment each numerical index by 1:
+
+```{r}
+l <- j |> as_r()
+j_find_values(l, 3, auto_unbox = TRUE, path_type = "JSONpath", as = "tibble")
+l[['x']][[2]] # siblings
+```
+
+NDJSON files are flattened into character vectors, with
+each element the flattened version of the corresponding NDJSON record.
 
 # The JSON parser
 
@@ -320,6 +615,14 @@ the query as a JSON string, e.g., using the `fromJSON()` in the
 [jsonlite][] package.
 
 ```{r jsonlite_fromJSON}
+json <- '{
+  "locations": [
+    {"name": "Seattle", "state": "WA"},
+    {"name": "New York", "state": "NY"},
+    {"name": "Bellevue", "state": "WA"},
+    {"name": "Olympia", "state": "WA"}
+  ]
+}'
 j_query(json, "locations[?state == 'WA']") |>
     ## `fromJSON()` simplifies list-of-objects to data.frame
     jsonlite::fromJSON()
