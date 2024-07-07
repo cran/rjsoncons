@@ -63,7 +63,8 @@ j_pivot(ndjson_file, "{id: id, type: type}", as = "data.frame")
 ## ----ndjson_j_pivot_filter----------------------------------------------------
 path <-
     "[{id: id, type: type, org: org}]
-         [?@.type == 'PushEvent' && @.org != null]"
+         [?@.type == 'PushEvent' && @.org != null] |
+             [0]"
 j_pivot(ndjson_file, path, as = "data.frame")
 
 ## ----r_list-------------------------------------------------------------------

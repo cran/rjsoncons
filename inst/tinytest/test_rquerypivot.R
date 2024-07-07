@@ -25,7 +25,8 @@ ndjson_file <- system.file(package = "rjsoncons", "extdata", "example.ndjson")
 
 ## j_query
 
-expect_identical(j_query(""), '[""]') # JSONpointer
+if (has_jsonlite)
+    expect_identical(j_query(""), '[""]') # JSONpointer
 expect_identical(j_query('""'), '')
 expect_identical(j_query('[]'), '[]')
 expect_identical(j_query('{}'), '{}')
@@ -162,6 +163,28 @@ json <- '[{"a": 1},{"a": 2},{"a": 3, "b": 4},{"c": 5}]' # complex
 ndjson_vector <- c('{"a": 1}', '{"a": 2}', '{"a": 3, "b": 4}', '{"c": 5}')
 writeLines(ndjson_vector, ndjson_con)
 expected <- '{"a":[1,2,3,null],"b":[null,null,4,null],"c":[null,null,null,5]}'
+expect_identical(j_pivot(json), expected)
+expect_identical(j_pivot(ndjson_vector), expected)
+expect_identical(j_pivot(ndjson_con), expected)
+
+json <- '[{"a": [1,2]}]' # nested vector
+ndjson_vector <- '{"a": [1, 2]}'
+writeLines(ndjson_vector, ndjson_con)
+expected <- '{"a":[[1,2]]}'
+expect_identical(j_pivot(json), expected)
+expect_identical(
+    j_pivot(ndjson_vector, data_type = "ndjson"),
+    expected
+)
+expect_identical(
+    j_pivot(ndjson_con, data_type = c("ndjson", "file")),
+    expected
+)
+
+json <- '[{"a": [1, 2]}, {"a": [3, 4]}]'
+ndjson_vector <- c('{"a": [1, 2]}', '{"a": [3, 4]}')
+writeLines(ndjson_vector, ndjson_con)
+expected <- '{"a":[[1,2],[3,4]]}'
 expect_identical(j_pivot(json), expected)
 expect_identical(j_pivot(ndjson_vector), expected)
 expect_identical(j_pivot(ndjson_con), expected)
