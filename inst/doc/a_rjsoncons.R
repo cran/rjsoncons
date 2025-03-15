@@ -4,12 +4,12 @@ knitr::opts_chunk$set(
 )
 
 ## ----install, eval = FALSE----------------------------------------------------
-#  install.packages("rjsoncons", repos = "https://CRAN.R-project.org")
+# install.packages("rjsoncons", repos = "https://CRAN.R-project.org")
 
 ## ----install_github, eval = FALSE---------------------------------------------
-#  if (!requireNamespace("remotes", quiety = TRUE))
-#      install.packages("remotes", repos = "https://CRAN.R-project.org")
-#  remotes::install_github("mtmorgan/rjsoncons")
+# if (!requireNamespace("remotes", quiety = TRUE))
+#     install.packages("remotes", repos = "https://CRAN.R-project.org")
+# remotes::install_github("mtmorgan/rjsoncons")
 
 ## ----library, messages = FALSE------------------------------------------------
 library(rjsoncons)
@@ -51,8 +51,8 @@ ndjson_file <-
     system.file(package = "rjsoncons", "extdata", "2023-02-08-0.json")
 
 ## ----ndjson_listviewer, eval = FALSE------------------------------------------
-#  j_query(ndjson_file, n_records = 1) |>
-#      listviewer::jsonedit()
+# j_query(ndjson_file, n_records = 1) |>
+#     listviewer::jsonedit()
 
 ## ----ndjson_j_query-----------------------------------------------------------
 j_query(ndjson_file, "{id: id, type: type}", n_records = 5)
@@ -223,7 +223,7 @@ as_r(json) |> str()
 as_r(json, object_names = "sort") |> str()
 
 ## ----as_r_tiny_test_source, eval = FALSE--------------------------------------
-#  system.file(package = "rjsoncons", "tinytest", "test_as_r.R")
+# system.file(package = "rjsoncons", "tinytest", "test_as_r.R")
 
 ## ----jsonlite_fromJSON--------------------------------------------------------
 json <- '{

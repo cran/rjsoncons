@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2024-07-01" />
+<meta name="date" content="2025-03-15" />
 
 <title>Transform and Validate JSON and NDJSON</title>
 
@@ -703,7 +703,7 @@ function toggle_visibility(id1) {
 <h1 class="title toc-ignore">Transform and Validate JSON and NDJSON</h1>
 <p class="author-name">Martin Morgan<span class="affil-mark">1</span> and Marcel Ramos<span class="affil-mark">2</span></p>
 <p class="author-affiliation"><span class="affil-mark">1</span>Roswell Park Comprehensive Cancer Center, Buffalo, NY, US<br><span class="affil-mark">2</span>CUNY School of Public Health at Hunter College, New York, NY, US</p>
-<h4 class="date">1 July 2024</h4>
+<h4 class="date">15 March 2025</h4>
 
 </div>
 
@@ -1070,8 +1070,8 @@ cat(readLines(schema), sep = &quot;\n&quot;)
     &quot;value&quot;: { &quot;name&quot;: &quot;Ginger Nut&quot; }
 }]&#39;
 j_schema_is_valid(op, schema)
-## [1] TRUE</code></pre>
-<pre class="r"><code>j_schema_validate(op, schema)
+## [1] TRUE
+j_schema_validate(op, schema)
 ## [1] &quot;[]&quot;</code></pre>
 <p>Introduce an invalid ‘op’, <code>&quot;op&quot;: &quot;invalid_op&quot;</code>, and the schema is no
 longer valid.</p>
@@ -1159,8 +1159,8 @@ exact matching to one or more keys or values, e.g.,</p>
 ##   path           value                
 ##   &lt;chr&gt;          &lt;chr&gt;                
 ## 1 /discards/1000 Record does not exist
-## 2 /warnings/1    State code missing</code></pre>
-<pre class="r"><code>j_find_keys(codes, &quot;warnings&quot;, as = &quot;tibble&quot;)
+## 2 /warnings/1    State code missing
+j_find_keys(codes, &quot;warnings&quot;, as = &quot;tibble&quot;)
 ## # A tibble: 3 × 2
 ##   path        value                            
 ##   &lt;chr&gt;       &lt;chr&gt;                            
@@ -1174,8 +1174,8 @@ exact matching to one or more keys or values, e.g.,</p>
 ##   &lt;chr&gt;       &lt;chr&gt;                            
 ## 1 /warnings/0 Phone number missing country code
 ## 2 /warnings/1 State code missing               
-## 3 /warnings/2 Zip code missing</code></pre>
-<pre class="r"><code>j_find_keys_grep(codes, &quot;card.*/100&quot;, as = &quot;tibble&quot;) # span key delimiters
+## 3 /warnings/2 Zip code missing
+j_find_keys_grep(codes, &quot;card.*/100&quot;, as = &quot;tibble&quot;) # span key delimiters
 ## # A tibble: 2 × 2
 ##   path           value                
 ##   &lt;chr&gt;          &lt;chr&gt;                
@@ -1189,8 +1189,8 @@ j_flatten(j, as = &quot;R&quot;) |&gt; str()
 ##  $ /x/0  : int 1
 ##  $ /x/1/0: int 2
 ##  $ /x/1/1: int 3
-##  $ /y/a  : int 4</code></pre>
-<pre class="r"><code>j_find_values(j, c(2, 4), as = &quot;tibble&quot;)
+##  $ /y/a  : int 4
+j_find_values(j, c(2, 4), as = &quot;tibble&quot;)
 ## # A tibble: 2 × 2
 ##   path   value
 ##   &lt;chr&gt;  &lt;int&gt;
@@ -1203,11 +1203,11 @@ contained.</p>
 ## # A tibble: 1 × 2
 ##   path   value
 ##   &lt;chr&gt;  &lt;int&gt;
-## 1 /x/1/1     3</code></pre>
-<pre class="r"><code>## path to &#39;3&#39; is &#39;/x/1/1&#39;, so containing object is at &#39;/x/1&#39;
+## 1 /x/1/1     3
+## path to &#39;3&#39; is &#39;/x/1/1&#39;, so containing object is at &#39;/x/1&#39;
 j_query(j, &quot;/x/1&quot;)
-## [1] &quot;[2,3]&quot;</code></pre>
-<pre class="r"><code>j_query(j, &quot;/x/1&quot;, as = &quot;R&quot;)
+## [1] &quot;[2,3]&quot;
+j_query(j, &quot;/x/1&quot;, as = &quot;R&quot;)
 ## [1] 2 3</code></pre>
 <p>Both JSONpointer and JSONpath are supported; an advantage of the
 latter is that the path distinguishes between integer-valued
@@ -1227,8 +1227,8 @@ j_find_values(l, 3, auto_unbox = TRUE, path_type = &quot;JSONpath&quot;, as = &q
 ## # A tibble: 1 × 2
 ##   path         value
 ##   &lt;chr&gt;        &lt;int&gt;
-## 1 $[&#39;x&#39;][1][1]     3</code></pre>
-<pre class="r"><code>l[[&#39;x&#39;]][[2]] # siblings
+## 1 $[&#39;x&#39;][1][1]     3
+l[[&#39;x&#39;]][[2]] # siblings
 ## [1] 2 3</code></pre>
 <p>NDJSON files are flattened into character vectors, with
 each element the flattened version of the corresponding NDJSON record.</p>
@@ -1246,12 +1246,12 @@ or directly with <code>as_r()</code></p>
 of a single type (boolean, integer, double, string) are transformed to
 <em>R</em> vectors of the same length and corresponding type.</p>
 <pre class="r"><code>as_r(&#39;[true, false, true]&#39;) # boolean -&gt; logical
-## [1]  TRUE FALSE  TRUE</code></pre>
-<pre class="r"><code>as_r(&#39;[1, 2, 3]&#39;)           # integer -&gt; integer
-## [1] 1 2 3</code></pre>
-<pre class="r"><code>as_r(&#39;[1.0, 2.0, 3.0]&#39;)     # double  -&gt; numeric
-## [1] 1 2 3</code></pre>
-<pre class="r"><code>as_r(&#39;[&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]&#39;)     # string  -&gt; character
+## [1]  TRUE FALSE  TRUE
+as_r(&#39;[1, 2, 3]&#39;)           # integer -&gt; integer
+## [1] 1 2 3
+as_r(&#39;[1.0, 2.0, 3.0]&#39;)     # double  -&gt; numeric
+## [1] 1 2 3
+as_r(&#39;[&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]&#39;)     # string  -&gt; character
 ## [1] &quot;a&quot; &quot;b&quot; &quot;c&quot;</code></pre>
 <p>JSON arrays mixing integer and double values are transformed to
 <em>R</em> numeric vectors.</p>
@@ -1265,8 +1265,8 @@ values greater than <code>2^53</code>.</p>
 ## [1] &quot;numeric&quot;</code></pre>
 <p>JSON objects are transformed to <em>R</em> named lists.</p>
 <pre class="r"><code>as_r(&#39;{}&#39;)
-## named list()</code></pre>
-<pre class="r"><code>as_r(&#39;{&quot;a&quot;: 1.0, &quot;b&quot;: [2, 3, 4]}&#39;) |&gt; str()
+## named list()
+as_r(&#39;{&quot;a&quot;: 1.0, &quot;b&quot;: [2, 3, 4]}&#39;) |&gt; str()
 ## List of 2
 ##  $ a: num 1
 ##  $ b: int [1:3] 2 3 4</code></pre>
@@ -1284,11 +1284,11 @@ of length 1 are represented in the same way in <em>R</em>.</p>
 <p>JSON <code>null</code> values are represented as <em>R</em> <code>NULL</code> values; arrays of
 <code>null</code> are transformed to lists</p>
 <pre class="r"><code>as_r(&#39;null&#39;)                  # NULL
-## NULL</code></pre>
-<pre class="r"><code>as_r(&#39;[null]&#39;) |&gt; str()       # list(NULL)
+## NULL
+as_r(&#39;[null]&#39;) |&gt; str()       # list(NULL)
 ## List of 1
-##  $ : NULL</code></pre>
-<pre class="r"><code>as_r(&#39;[null, null]&#39;) |&gt; str() # list(NULL, NULL)
+##  $ : NULL
+as_r(&#39;[null, null]&#39;) |&gt; str() # list(NULL, NULL)
 ## List of 2
 ##  $ : NULL
 ##  $ : NULL</code></pre>
@@ -1302,8 +1302,8 @@ as_r(json) |&gt; str()
 ##  $ b: int 1
 ##  $ a:List of 2
 ##   ..$ d: int 2
-##   ..$ c: int 3</code></pre>
-<pre class="r"><code>as_r(json, object_names = &quot;sort&quot;) |&gt; str()
+##   ..$ c: int 3
+as_r(json, object_names = &quot;sort&quot;) |&gt; str()
 ## List of 2
 ##  $ a:List of 2
 ##   ..$ c: int 3
@@ -1354,13 +1354,13 @@ between R and the C++ ‘jsoncons’ library.</p>
 <h1><span class="header-section-number">8</span> Session information</h1>
 <p>This vignette was compiled using the following software versions</p>
 <pre class="r"><code>sessionInfo()
-## R version 4.4.1 Patched (2024-06-20 r86819)
-## Platform: aarch64-apple-darwin23.5.0
-## Running under: macOS Sonoma 14.5
+## R Under development (unstable) (2025-03-08 r87910)
+## Platform: aarch64-apple-darwin24.3.0
+## Running under: macOS Sequoia 15.3.1
 ## 
 ## Matrix products: default
-## BLAS:   /Users/ma38727/bin/R-4-4-branch/lib/libRblas.dylib 
-## LAPACK: /Users/ma38727/bin/R-4-4-branch/lib/libRlapack.dylib;  LAPACK version 3.12.0
+## BLAS:   /Users/mtmorgan/bin/R-devel/lib/libRblas.dylib 
+## LAPACK: /Users/mtmorgan/bin/R-devel/lib/libRlapack.dylib;  LAPACK version 3.12.1
 ## 
 ## locale:
 ## [1] C/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
@@ -1372,19 +1372,19 @@ between R and the C++ ‘jsoncons’ library.</p>
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-## [1] rjsoncons_1.3.1  BiocStyle_2.33.1
+## [1] rjsoncons_1.3.2  BiocStyle_2.35.0
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] vctrs_0.6.5         cli_3.6.3           knitr_1.47         
-##  [4] rlang_1.1.4         xfun_0.45           jsonlite_1.8.8     
-##  [7] glue_1.7.0          htmltools_0.5.8.1   sass_0.4.9         
-## [10] fansi_1.0.6         rmarkdown_2.27      evaluate_0.24.0    
-## [13] jquerylib_0.1.4     tibble_3.2.1        fastmap_1.2.0      
-## [16] yaml_2.3.8          lifecycle_1.0.4     bookdown_0.39      
-## [19] BiocManager_1.30.23 compiler_4.4.1      pkgconfig_2.0.3    
-## [22] digest_0.6.36       R6_2.5.1            utf8_1.2.4         
-## [25] pillar_1.9.0        magrittr_2.0.3      bslib_0.7.0        
-## [28] tools_4.4.1         cachem_1.1.0</code></pre>
+##  [1] vctrs_0.6.5         cli_3.6.4           knitr_1.49         
+##  [4] rlang_1.1.5         xfun_0.50           jsonlite_1.8.9     
+##  [7] glue_1.8.0          htmltools_0.5.8.1   sass_0.4.9         
+## [10] rmarkdown_2.29      evaluate_1.0.3      jquerylib_0.1.4    
+## [13] tibble_3.2.1        fastmap_1.2.0       yaml_2.3.10        
+## [16] lifecycle_1.0.4     bookdown_0.42       BiocManager_1.30.25
+## [19] compiler_4.5.0      pkgconfig_2.0.3     digest_0.6.37      
+## [22] R6_2.6.1            utf8_1.2.4          pillar_1.10.1      
+## [25] magrittr_2.0.3      bslib_0.9.0         tools_4.5.0        
+## [28] cachem_1.1.0</code></pre>
 </div>
 
 

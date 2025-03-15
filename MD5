@@ -1,6 +1,6 @@
-c3c55dc6b328bb2dff0948837f0000e8 *DESCRIPTION
+09929524f1d1a4398585c85ab32ca5d6 *DESCRIPTION
 1204cc6c43f792ba9a99552872d97b08 *NAMESPACE
-52a0a770824ba62fc4dfef7104684e2a *NEWS.md
+cad7a72be36dfc684a99da9509e061fc *NEWS.md
 353f94e29aeef7cd0418f961c59b69ab *R/as_r.R
 5c252e854958d795bb84dbc745848d64 *R/cpp11.R
 b13567aecd11f0288127d1ce72b363b5 *R/do_cpp.R
@@ -14,10 +14,10 @@ e776d9c7ed32226006f75990922a83ed *R/rquerypivot.R
 ef419ebbb8aa9156dfc637f6e23cf58b *R/utilities.R
 be6f6bb99760f3939ad85ef0b17e061a *R/version.R
 39ae11f501a9a39ed1dda920642944ba *README.md
-73d3a4d234d641b8e5c9a6277f2fcdd7 *build/vignette.rds
-f1ff1336f3bba86ef5a27f542f60df6c *inst/doc/a_rjsoncons.R
+eabce5136e4eb536f8219e6d76840c05 *build/vignette.rds
+0abaf19887007cece89af5beaec5fe2e *inst/doc/a_rjsoncons.R
 96c02a35d2dce992dcb6b728eada1414 *inst/doc/a_rjsoncons.Rmd
-5b92ad3e1cf328cf83ecc29547c5a541 *inst/doc/a_rjsoncons.html
+8ce03b62396a432b66ef152a9cdb5781 *inst/doc/a_rjsoncons.html
 4f7e64699e48c3c9b21a59de7272a68c *inst/extdata/2023-02-08-0.json
 6bb2943ddd0ecc5926b99b48f032d8b3 *inst/extdata/example.json
 fa7ef476acfe1c04ae8076f50a06a488 *inst/extdata/example.ndjson
@@ -26,7 +26,7 @@ d0b22cf80eaac3626c528725d031255c *inst/extdata/json-patch.json
 8dda928ad00f0efcf99c4b8ff686a387 *inst/extdata/patch_data.json
 ee32cc2a2b86ebf82145d6dc1ccfa1c1 *inst/include/jsoncons/allocator_holder.hpp
 0900154467fb60d7d957da4b787b1b51 *inst/include/jsoncons/allocator_set.hpp
-a84f2fde31b3db6a902c0aa38283a6fa *inst/include/jsoncons/basic_json.hpp
+5a70fac7f260074031037dd1270b45e8 *inst/include/jsoncons/basic_json.hpp
 caaef816a75e27c50ed0c2a9bf15e08c *inst/include/jsoncons/bigint.hpp
 2e922bdbe1c362d61bf9dfed59ace944 *inst/include/jsoncons/byte_string.hpp
 e87c7709808e872533b493f61f03e6ab *inst/include/jsoncons/config/binary_config.hpp
